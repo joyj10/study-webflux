@@ -2,39 +2,35 @@ package org.study.webflux.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.study.webflux.client.PostClient;
-import org.study.webflux.dto.PostResponse;
+import org.study.webflux.domain.Post;
+import org.study.webflux.repository.PostR2dbcRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class PostService {
-    private final PostClient postClient;
+    private final PostR2dbcRepository postR2dbcRepository;
 
-    // 단건 요청
-    public Mono<PostResponse> getPostContent(Long id) {
-        return postClient.getPost(id)
-                .onErrorResume(error -> Mono.just(new PostResponse(id.toString(), "Fallback data %d".formatted(id)))); // 오류 발생 시 전체 실패가 아닌 일부 실패 데이터 처리
+    public Mono<Post> create(Long userId, String title, String content) {
+        return postR2dbcRepository.save(
+                Post.builder()
+                        .userId(userId)
+                        .title(title)
+                        .content(content)
+                        .build()
+        );
     }
 
-    // 다건 요청
-    public Flux<PostResponse> getMultiplePostContent(List<Long> idList) {
-        return Flux.fromIterable(idList)
-                .flatMap(this::getPostContent)
-                .log();
+    public Flux<Post> findAll() {
+        return postR2dbcRepository.findAll();
     }
 
-    // 병렬 요청
-    public Flux<PostResponse> getParallelMultiplePostContent(List<Long> idList) {
-        return Flux.fromIterable(idList)
-                .parallel()
-                .runOn(Schedulers.parallel())
-                .flatMap(this::getPostContent)
-                .log()
-                .sequential();
+    public Mono<Post> findById(Long id) {
+        return postR2dbcRepository.findById(id);
+    }
+
+    public Mono<Void> deleteById(Long id) {
+        return postR2dbcRepository.deleteById(id);
     }
 }

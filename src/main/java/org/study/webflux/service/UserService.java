@@ -3,14 +3,15 @@ package org.study.webflux.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.study.webflux.domain.User;
-import org.study.webflux.repository.UserRepository;
+import org.study.webflux.repository.UserR2dbcRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final UserRepository userRepository;
+//    private final UserRepository userRepository;
+    private final UserR2dbcRepository userRepository;
 
     public Mono<User> create(String name, String email) {
         return userRepository.save(User.builder().name(name).email(email).build());
@@ -24,7 +25,7 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public Mono<Integer> deleteById(Long id) {
+    public Mono<Void> deleteById(Long id) {
         return userRepository.deleteById(id);
     }
 

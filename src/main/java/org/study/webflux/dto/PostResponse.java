@@ -1,13 +1,33 @@
 package org.study.webflux.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.study.webflux.domain.Post;
+
+import java.time.LocalDateTime;
 
 @Data
-@NoArgsConstructor
+@Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class PostResponse {
-    private String id;
+    private Long id;
+    private Long userId;
+    private String title;
     private String content;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public static PostResponse of(Post post) {
+        return PostResponse.builder()
+                .id(post.getId())
+                .userId(post.getUserId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .build();
+    }
 }

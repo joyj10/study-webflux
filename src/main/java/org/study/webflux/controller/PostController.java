@@ -1,35 +1,41 @@
 package org.study.webflux.controller;
 
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.study.webflux.dto.PostCreateRequest;
 import org.study.webflux.dto.PostResponse;
 import org.study.webflux.service.PostService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/posts")
 public class PostController {
-
     private final PostService postService;
 
+    @PostMapping
+    public Mono<PostResponse> createPost(@RequestBody PostCreateRequest request) {
+        return postService.create(request.getUserId(), request.getTitle(), request.getContent())
+                .map(PostResponse::of);
+    }
+
+    @GetMapping
+    public Flux<PostResponse> findAllPost() {
+        return postService.findAll()
+                .map(PostResponse::of);
+    }
+
     @GetMapping("/{id}")
-    public Mono<PostResponse> getPostContent(@PathVariable Long id) {
-        return postService.getPostContent(id);
+    public Mono<ResponseEntity<PostResponse>> findPost(@PathVariable Long id) {
+        return postService.findById(id)
+                .map(p -> ResponseEntity.ok().body(PostResponse.of(p)))
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
-
-    @GetMapping("/multiple")
-    public Flux<PostResponse> getMultiplePostContent(@RequestParam(name = "ids") List<Long> idList) {
-        return postService.getMultiplePostContent(idList);
-    }
-
-    @GetMapping("/parallel-multiple")
-    public Flux<PostResponse> getParallelMultiplePostContent(@RequestParam(name = "ids") List<Long> idList) {
-        return postService.getParallelMultiplePostContent(idList);
+    @DeleteMapping("/{id}")
+    public Mono<ResponseEntity<Void>> deletePost(@PathVariable Long id) {
+        return postService.deleteById(id).then(Mono.just(ResponseEntity.noContent().build()));
     }
 }
